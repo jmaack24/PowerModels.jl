@@ -46,6 +46,94 @@ function variable_bus_voltage_magnitude(pm::AbstractPowerModel; nw::Int=nw_id_de
 end
 
 
+"variable: `yl[i]` for `i` in `bus`es"
+function variable_bus_real_lost_load(
+    pm::AbstractPowerModel;
+    nw::Int=nw_id_default,
+    bounded::Bool=true,
+    report::Bool=true
+)
+
+    yl = var(pm, nw)[:yl] = JuMP.@variable(pm.model,
+                                           [i in ids(pm, nw, :bus)],
+                                           base_name="$(nw)_yl",
+                                           start=comp_start_value(ref(pm, nw, :bus, i),
+                                                                  "yl_start",
+                                                                  0.0),
+                                           lower_bound=0.0,
+                                           )
+
+    report && sol_component_value(pm, nw, :bus, :yl, ids(pm, nw, :bus), yl)
+
+end
+
+
+"variable: `yo[i]` for `i` in `bus`es"
+function variable_bus_real_over_load(
+    pm::AbstractPowerModel;
+    nw::Int=nw_id_default,
+    bounded::Bool=true,
+    report::Bool=true
+)
+
+    yo = var(pm, nw)[:yo] = JuMP.@variable(pm.model,
+                                           [i in ids(pm, nw, :bus)],
+                                           base_name="$(nw)_yo",
+                                           start=comp_start_value(ref(pm, nw, :bus, i),
+                                                                  "yo_start",
+                                                                  0.0),
+                                           lower_bound=0.0,
+                                           )
+
+    report && sol_component_value(pm, nw, :bus, :yo, ids(pm, nw, :bus), yo)
+
+end
+
+
+"variable: `zl[i]` for `i` in `bus`es"
+function variable_bus_reactive_lost_load(
+    pm::AbstractPowerModel;
+    nw::Int=nw_id_default,
+    bounded::Bool=true,
+    report::Bool=true
+)
+
+    zl = var(pm, nw)[:zl] = JuMP.@variable(pm.model,
+                                           [i in ids(pm, nw, :bus)],
+                                           base_name="$(nw)_zl",
+                                           start=comp_start_value(ref(pm, nw, :bus, i),
+                                                                  "zl_start",
+                                                                  0.0),
+                                           lower_bound=0.0,
+                                           )
+
+    report && sol_component_value(pm, nw, :bus, :zl, ids(pm, nw, :bus), zl)
+
+end
+
+
+"variable: `zo[i]` for `i` in `bus`es"
+function variable_bus_reactive_over_load(
+    pm::AbstractPowerModel;
+    nw::Int=nw_id_default,
+    bounded::Bool=true,
+    report::Bool=true
+)
+
+    zo = var(pm, nw)[:zo] = JuMP.@variable(pm.model,
+                                           [i in ids(pm, nw, :bus)],
+                                           base_name="$(nw)_zo",
+                                           start=comp_start_value(ref(pm, nw, :bus, i),
+                                                                  "zo_start",
+                                                                  0.0),
+                                           lower_bound=0.0,
+                                           )
+
+    report && sol_component_value(pm, nw, :bus, :zo, ids(pm, nw, :bus), zo)
+
+end
+
+
 "real part of the voltage variable `i` in `bus`es"
 function variable_bus_voltage_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     vr = var(pm, nw)[:vr] = JuMP.@variable(pm.model,

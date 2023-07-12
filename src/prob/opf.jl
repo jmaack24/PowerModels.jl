@@ -16,6 +16,7 @@ end
 ""
 function build_opf(pm::AbstractPowerModel)
     variable_bus_voltage(pm)
+    variable_power_balance_slacks(pm)
     variable_gen_power(pm)
     variable_branch_power(pm)
     variable_dcline_power(pm)

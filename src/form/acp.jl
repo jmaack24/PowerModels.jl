@@ -6,6 +6,13 @@ function variable_bus_voltage(pm::AbstractACPModel; kwargs...)
     variable_bus_voltage_magnitude(pm; kwargs...)
 end
 
+function variable_power_balance_slacks(pm::AbstractACPModel; kwargs...)
+    variable_bus_real_lost_load(pm; kwargs...)
+    variable_bus_real_over_load(pm; kwargs...)
+    variable_bus_reactive_lost_load(pm; kwargs...)
+    variable_bus_reactive_over_load(pm; kwargs...)
+end
+
 ""
 function sol_data_model!(pm::AbstractACPModel, solution::Dict)
     # nothing to do, this is in the data model space by default
@@ -59,6 +66,11 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
     p_dc = get(var(pm, n), :p_dc, Dict()); _check_var_keys(p_dc, bus_arcs_dc, "active power", "dcline")
     q_dc = get(var(pm, n), :q_dc, Dict()); _check_var_keys(q_dc, bus_arcs_dc, "reactive power", "dcline")
 
+    yl = var(pm, n, :yl, i)
+    yo = var(pm, n, :yo, i)
+    zl = var(pm, n, :zl, i)
+    zo = var(pm, n, :zo, i)
+
     # the check "typeof(p[arc]) <: JuMP.NonlinearExpression" is required for the
     # case when p/q are nonlinear expressions instead of decision variables
     # once NLExpressions are first order in JuMP it should be possible to
@@ -67,50 +79,58 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
 
     if !nl_form
         cstr_p = JuMP.@constraint(pm.model,
-            sum(p[a] for a in bus_arcs)
-            + sum(p_dc[a_dc] for a_dc in bus_arcs_dc)
-            + sum(psw[a_sw] for a_sw in bus_arcs_sw)
-            ==
-            sum(pg[g] for g in bus_gens)
-            - sum(ps[s] for s in bus_storage)
-            - sum(pd for (i,pd) in bus_pd)
-            - sum(gs for (i,gs) in bus_gs)*vm^2
-        )
+                                  sum(p[a] for a in bus_arcs)
+                                  + sum(p_dc[a_dc] for a_dc in bus_arcs_dc)
+                                  + sum(psw[a_sw] for a_sw in bus_arcs_sw)
+                                  ==
+                                  sum(pg[g] for g in bus_gens)
+                                  + yl
+                                  - yo
+                                  - sum(ps[s] for s in bus_storage)
+                                  - sum(pd for (i,pd) in bus_pd)
+                                  - sum(gs for (i,gs) in bus_gs)*vm^2
+                                  )
     else
         cstr_p = JuMP.@NLconstraint(pm.model,
-            sum(p[a] for a in bus_arcs)
-            + sum(p_dc[a_dc] for a_dc in bus_arcs_dc)
-            + sum(psw[a_sw] for a_sw in bus_arcs_sw)
-            ==
-            sum(pg[g] for g in bus_gens)
-            - sum(ps[s] for s in bus_storage)
-            - sum(pd for (i,pd) in bus_pd)
-            - sum(gs for (i,gs) in bus_gs)*vm^2
-        )
+                                    sum(p[a] for a in bus_arcs)
+                                    + sum(p_dc[a_dc] for a_dc in bus_arcs_dc)
+                                    + sum(psw[a_sw] for a_sw in bus_arcs_sw)
+                                    ==
+                                    sum(pg[g] for g in bus_gens)
+                                    + yl
+                                    - yo
+                                    - sum(ps[s] for s in bus_storage)
+                                    - sum(pd for (i,pd) in bus_pd)
+                                    - sum(gs for (i,gs) in bus_gs)*vm^2
+                                    )
     end
 
     if !nl_form
         cstr_q = JuMP.@constraint(pm.model,
-            sum(q[a] for a in bus_arcs)
-            + sum(q_dc[a_dc] for a_dc in bus_arcs_dc)
-            + sum(qsw[a_sw] for a_sw in bus_arcs_sw)
-            ==
-            sum(qg[g] for g in bus_gens)
-            - sum(qs[s] for s in bus_storage)
-            - sum(qd for (i,qd) in bus_qd)
-            + sum(bs for (i,bs) in bus_bs)*vm^2
-        )
+                                  sum(q[a] for a in bus_arcs)
+                                  + sum(q_dc[a_dc] for a_dc in bus_arcs_dc)
+                                  + sum(qsw[a_sw] for a_sw in bus_arcs_sw)
+                                  ==
+                                  sum(qg[g] for g in bus_gens)
+                                  + zl
+                                  - zo
+                                  - sum(qs[s] for s in bus_storage)
+                                  - sum(qd for (i,qd) in bus_qd)
+                                  + sum(bs for (i,bs) in bus_bs)*vm^2
+                                  )
     else
         cstr_q = JuMP.@NLconstraint(pm.model,
-            sum(q[a] for a in bus_arcs)
-            + sum(q_dc[a_dc] for a_dc in bus_arcs_dc)
-            + sum(qsw[a_sw] for a_sw in bus_arcs_sw)
-            ==
-            sum(qg[g] for g in bus_gens)
-            - sum(qs[s] for s in bus_storage)
-            - sum(qd for (i,qd) in bus_qd)
-            + sum(bs for (i,bs) in bus_bs)*vm^2
-        )
+                                    sum(q[a] for a in bus_arcs)
+                                    + sum(q_dc[a_dc] for a_dc in bus_arcs_dc)
+                                    + sum(qsw[a_sw] for a_sw in bus_arcs_sw)
+                                    ==
+                                    sum(qg[g] for g in bus_gens)
+                                    + zl
+                                    - zo
+                                    - sum(qs[s] for s in bus_storage)
+                                    - sum(qd for (i,qd) in bus_qd)
+                                    + sum(bs for (i,bs) in bus_bs)*vm^2
+                                    )
     end
 
     if _IM.report_duals(pm)

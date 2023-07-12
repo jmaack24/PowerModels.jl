@@ -126,6 +126,7 @@ end
 ""
 function _objective_min_fuel_and_flow_cost_polynomial_linquad(pm::AbstractPowerModel; report::Bool=true)
     gen_cost = Dict()
+    slack_cost = Dict()
     dcline_cost = Dict()
 
     for (n, nw_ref) in nws(pm)
@@ -141,6 +142,14 @@ function _objective_min_fuel_and_flow_cost_polynomial_linquad(pm::AbstractPowerM
             else
                 gen_cost[(n,i)] = 0.0
             end
+        end
+
+        for (i,bus) in nw_ref[:bus]
+            yl = var(pm, n, :yl, i)
+            yo = var(pm, n, :yo, i)
+            zl = var(pm, n, :zl, i)
+            zo = var(pm, n, :zo, i)
+            slack_cost[(n,i)] = 100_000 * (yl + yo + zl + zo)
         end
 
         from_idx = Dict(arc[1] => arc for arc in nw_ref[:arcs_from_dc])
@@ -162,6 +171,7 @@ function _objective_min_fuel_and_flow_cost_polynomial_linquad(pm::AbstractPowerM
     return JuMP.@objective(pm.model, Min,
         sum(
             sum(    gen_cost[(n,i)] for (i,gen) in nw_ref[:gen] ) +
+            sum(  slack_cost[(n,i)] for (i,bus) in nw_ref[:bus] ) +
             sum( dcline_cost[(n,i)] for (i,dcline) in nw_ref[:dcline] )
         for (n, nw_ref) in nws(pm))
     )
