@@ -54,13 +54,21 @@ function variable_bus_real_lost_load(
     report::Bool=true
 )
 
+    # yl = var(pm, nw)[:yl] = JuMP.@variable(pm.model,
+    #                                        [i in ids(pm, nw, :bus)],
+    #                                        base_name="$(nw)_yl",
+    #                                        start=comp_start_value(ref(pm, nw, :bus, i),
+    #                                                               "yl_start",
+    #                                                               0.0),
+    #                                        lower_bound=0.0,
+    #                                        )
+
     yl = var(pm, nw)[:yl] = JuMP.@variable(pm.model,
                                            [i in ids(pm, nw, :bus)],
                                            base_name="$(nw)_yl",
                                            start=comp_start_value(ref(pm, nw, :bus, i),
                                                                   "yl_start",
                                                                   0.0),
-                                           lower_bound=0.0,
                                            )
 
     report && sol_component_value(pm, nw, :bus, :yl, ids(pm, nw, :bus), yl)
@@ -98,13 +106,21 @@ function variable_bus_reactive_lost_load(
     report::Bool=true
 )
 
+    # zl = var(pm, nw)[:zl] = JuMP.@variable(pm.model,
+    #                                        [i in ids(pm, nw, :bus)],
+    #                                        base_name="$(nw)_zl",
+    #                                        start=comp_start_value(ref(pm, nw, :bus, i),
+    #                                                               "zl_start",
+    #                                                               0.0),
+    #                                        lower_bound=0.0,
+    #                                        )
+
     zl = var(pm, nw)[:zl] = JuMP.@variable(pm.model,
                                            [i in ids(pm, nw, :bus)],
                                            base_name="$(nw)_zl",
                                            start=comp_start_value(ref(pm, nw, :bus, i),
                                                                   "zl_start",
                                                                   0.0),
-                                           lower_bound=0.0,
                                            )
 
     report && sol_component_value(pm, nw, :bus, :zl, ids(pm, nw, :bus), zl)

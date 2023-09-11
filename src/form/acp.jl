@@ -8,9 +8,9 @@ end
 
 function variable_power_balance_slacks(pm::AbstractACPModel; kwargs...)
     variable_bus_real_lost_load(pm; kwargs...)
-    variable_bus_real_over_load(pm; kwargs...)
+    # variable_bus_real_over_load(pm; kwargs...)
     variable_bus_reactive_lost_load(pm; kwargs...)
-    variable_bus_reactive_over_load(pm; kwargs...)
+    # variable_bus_reactive_over_load(pm; kwargs...)
 end
 
 ""
@@ -67,9 +67,9 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
     q_dc = get(var(pm, n), :q_dc, Dict()); _check_var_keys(q_dc, bus_arcs_dc, "reactive power", "dcline")
 
     yl = var(pm, n, :yl, i)
-    yo = var(pm, n, :yo, i)
+    # yo = var(pm, n, :yo, i)
     zl = var(pm, n, :zl, i)
-    zo = var(pm, n, :zo, i)
+    # zo = var(pm, n, :zo, i)
 
     # the check "typeof(p[arc]) <: JuMP.NonlinearExpression" is required for the
     # case when p/q are nonlinear expressions instead of decision variables
@@ -85,7 +85,7 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
                                   ==
                                   sum(pg[g] for g in bus_gens)
                                   + yl
-                                  - yo
+                                  # - yo
                                   - sum(ps[s] for s in bus_storage)
                                   - sum(pd for (i,pd) in bus_pd)
                                   - sum(gs for (i,gs) in bus_gs)*vm^2
@@ -98,7 +98,7 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
                                     ==
                                     sum(pg[g] for g in bus_gens)
                                     + yl
-                                    - yo
+                                    # - yo
                                     - sum(ps[s] for s in bus_storage)
                                     - sum(pd for (i,pd) in bus_pd)
                                     - sum(gs for (i,gs) in bus_gs)*vm^2
@@ -113,7 +113,7 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
                                   ==
                                   sum(qg[g] for g in bus_gens)
                                   + zl
-                                  - zo
+                                  # - zo
                                   - sum(qs[s] for s in bus_storage)
                                   - sum(qd for (i,qd) in bus_qd)
                                   + sum(bs for (i,bs) in bus_bs)*vm^2
@@ -126,7 +126,7 @@ function constraint_power_balance(pm::AbstractACPModel, n::Int, i::Int, bus_arcs
                                     ==
                                     sum(qg[g] for g in bus_gens)
                                     + zl
-                                    - zo
+                                    # - zo
                                     - sum(qs[s] for s in bus_storage)
                                     - sum(qd for (i,qd) in bus_qd)
                                     + sum(bs for (i,bs) in bus_bs)*vm^2
